@@ -1,0 +1,14 @@
+﻿.env
+.env.*
+!.env.example
+*.log
+node_modules/
+coverage/
+dist/
+*.sqlite
+*.db
+backups/
+exports/
+member-data/
+payment-data/
+
