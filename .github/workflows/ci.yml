@@ -1,0 +1,59 @@
+﻿name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-and-build:
+    name: Validate, scan, and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Validate project files
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s src/index.html
+          test -s Dockerfile
+          test -s nginx.conf
+          grep -q "MKVA" src/index.html
+          grep -q "Member Management" src/index.html
+      - name: Check for common committed secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -RInE --exclude-dir=.git --exclude=ci.yml '(BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY|sk_live_[A-Za-z0-9]+|AKIA[0-9A-Z]{16}|AccountKey=[A-Za-z0-9+/=]+)' .; then
+            echo "Potential secret detected."
+            exit 1
+          fi
+      - name: Build Docker image
+        run: docker build --tag mkva-member-management:${{ github.sha }} .
+      - name: Start container
+        run: docker run --detach --name mkva-app --publish 8080:80 mkva-member-management:${{ github.sha }}
+      - name: Verify health endpoint
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in {1..10}; do
+            if curl --fail --silent http://127.0.0.1:8080/health | grep -q healthy; then exit 0; fi
+            sleep 2
+          done
+          docker logs mkva-app
+          exit 1
+      - name: Stop container
+        if: always()
+        run: docker rm --force mkva-app || true
+

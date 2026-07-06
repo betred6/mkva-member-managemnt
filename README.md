@@ -1,4 +1,6 @@
-﻿# MKVA Member Management System
+﻿[![CI](https://github.com/betred6/mkva-member-managemnt/actions/workflows/ci.yml/badge.svg)](https://github.com/betred6/mkva-member-managemnt/actions/workflows/ci.yml)
+
+# MKVA Member Management System
 
 A private administrative system for organizing Member Section records, training progress, monthly dues, and payment history. It also demonstrates an Azure-focused DevOps workflow.
 
@@ -46,4 +48,3 @@ Automatic charging is intentionally disabled. Production requires a server-side 
 ## License
 
 MIT
-
