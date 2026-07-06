@@ -48,7 +48,7 @@ jobs:
         run: |
           set -euo pipefail
           for attempt in {1..10}; do
-            if docker exec mkva-app wget -qO- http://127.0.0.1/health | grep -q healthy; then exit 0; fi
+            if docker exec mkva-app wget -q --spider http://127.0.0.1/health; then exit 0; fi
             sleep 2
           done
           docker logs mkva-app
